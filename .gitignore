@@ -39,7 +39,7 @@ pnpm-debug.log*
 
 # Production builds
 dist/
-build/
+!frontend/dist/
 
 # Environment variables
 .env

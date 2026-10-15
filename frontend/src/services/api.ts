@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (typeof window !== 'undefined' && window.location.port !== '5173' ? `${window.location.origin}/api/v1` : 'http://localhost:8000/api/v1');
 
 class ApiClient {
   private getHeaders(isFormData = false): HeadersInit {

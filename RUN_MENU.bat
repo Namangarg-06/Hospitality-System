@@ -8,31 +8,48 @@ echo             NG DINEAI — CONTROL CENTER
 echo        Smarter Dining. Smarter Operations.
 echo ========================================================
 echo.
-echo   [1] RUN APPLICATION (Start Backend, Frontend & Open Browser)
-echo   [2] STOP APPLICATION (Close all running servers)
-echo   [3] RUN AUTOMATED TESTS (Verify pytest test suite)
-echo   [4] UPDATE GITHUB (Commit and push changes to repo)
+echo   [1] RUN UNIFIED APP (Single Python Server on http://127.0.0.1:8000 via run_app.py)
+echo   [2] RUN DEV SERVERS (FastAPI on 8000 + Vite on 5173 with Hot Reload)
+echo   [3] STOP APPLICATION (Close all running servers)
+echo   [4] RUN AUTOMATED TESTS (Verify pytest test suite)
 echo   [5] OPEN DIGITAL QR MENU IN BROWSER
-echo   [6] EXIT
+echo   [6] UPDATE GITHUB (Commit and push changes to repo)
+echo   [7] EXIT
 echo.
 echo ========================================================
-set /p choice="Apna option select karein [1, 2, 3, 4, 5, 6]: "
+set /p choice="Apna option select karein [1, 2, 3, 4, 5, 6, 7]: "
 
-if "%choice%"=="1" goto run_app
-if "%choice%"=="2" goto stop_app
-if "%choice%"=="3" goto run_tests
-if "%choice%"=="4" goto update_git
+if "%choice%"=="1" goto run_unified
+if "%choice%"=="2" goto run_dev
+if "%choice%"=="3" goto stop_app
+if "%choice%"=="4" goto run_tests
 if "%choice%"=="5" goto open_qr
-if "%choice%"=="6" goto exit_menu
-echo Invalid choice. Kripya 1 se 6 ke beech number chunein.
+if "%choice%"=="6" goto update_git
+if "%choice%"=="7" goto exit_menu
+echo Invalid choice. Kripya 1 se 7 ke beech number chunein.
 timeout /t 2 >nul
 goto menu
 
-:run_app
+:run_unified
 cls
 color 0A
 echo ========================================================
-echo   Starting NG DineAI Platform...
+echo   Starting NG DineAI (Unified Single-Port Launcher)...
+echo ========================================================
+echo.
+if exist "%~dp0venv\Scripts\python.exe" (
+    "%~dp0venv\Scripts\python.exe" run_app.py
+) else (
+    python run_app.py
+)
+pause
+goto menu
+
+:run_dev
+cls
+color 0A
+echo ========================================================
+echo   Starting NG DineAI Dev Servers (FastAPI + Vite)...
 echo ========================================================
 echo.
 echo 1. Starting Backend API on http://localhost:8000...
@@ -53,8 +70,8 @@ start http://localhost:5173
 
 echo.
 echo ========================================================
-echo   App chal rahi hai!
-echo   Demo Login: owner@dineai.com / DineAI@2026
+echo   Dev servers chal rahe hain!
+echo   Demo Login: owner@royalsaffron.com / RoyalPass123!
 echo   QR Menu:    http://localhost:5173/m/the-royal-saffron
 echo ========================================================
 pause
@@ -90,6 +107,10 @@ echo.
 pause
 goto menu
 
+:open_qr
+start http://127.0.0.1:8000/m/the-royal-saffron
+goto menu
+
 :update_git
 cls
 color 0D
@@ -104,10 +125,6 @@ git push origin main
 echo.
 echo Done! Code pushed to GitHub (Namangarg-06/Hospitality-System).
 pause
-goto menu
-
-:open_qr
-start http://localhost:5173/m/the-royal-saffron
 goto menu
 
 :exit_menu

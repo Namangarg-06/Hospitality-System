@@ -68,3 +68,47 @@ def health_check():
         "version": settings.VERSION,
         "mode": "production-ready"
     }
+
+# Mount uploads directory if present
+if os.path.exists(settings.UPLOAD_DIR):
+    app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+
+# Detect and mount frontend production build (SPA)
+from pathlib import Path
+from fastapi.responses import FileResponse
+from fastapi import HTTPException
+
+frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+if not frontend_dist.exists():
+    frontend_dist = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+
+if frontend_dist.exists():
+    assets_dir = frontend_dist / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+
+    @app.get("/{full_path:path}", tags=["Frontend"])
+    async def serve_frontend(full_path: str):
+        # Do not intercept API, docs, redoc, health, or openapi.json
+        if (
+            full_path.startswith("api/")
+            or full_path.startswith("docs")
+            or full_path.startswith("redoc")
+            or full_path.startswith("openapi.json")
+            or full_path.startswith("health")
+        ):
+            raise HTTPException(status_code=404, detail="Endpoint not found")
+        
+        file_path = frontend_dist / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(frontend_dist / "index.html")
+else:
+    @app.get("/", tags=["Root"])
+    def root():
+        return {
+            "application": settings.PROJECT_NAME,
+            "version": settings.VERSION,
+            "docs_url": "/docs",
+            "health_url": "/health",
+        }

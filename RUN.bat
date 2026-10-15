@@ -1,34 +1,25 @@
 @echo off
-title NG DineAI
+title NG DineAI — Luxury Hospitality SaaS
 color 0A
-
-echo ========================================================
-echo              Starting NG DineAI Platform...
-echo ========================================================
-echo.
 
 cd /d "%~dp0"
 
-echo 1. Starting FastAPI Backend on http://localhost:8000...
+echo ========================================================
+echo        Starting NG DineAI (Unified Single-Port Mode)
+echo ========================================================
+echo.
+
 if exist ".\venv\Scripts\python.exe" (
-    start "DineAI Backend API" /min cmd /c ".\venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --port 8000 --reload"
+    ".\venv\Scripts\python.exe" run_app.py
 ) else (
-    start "DineAI Backend API" /min cmd /c "cd /d %~dp0backend && python -m uvicorn app.main:app --port 8000 --reload"
+    python run_app.py
+    if errorlevel 1 (
+        "C:\Users\Hp\AppData\Local\Programs\Python\Python313\python.exe" run_app.py
+    )
 )
 
-echo 2. Starting React Frontend on http://localhost:5173...
-start "DineAI Frontend UI" /min cmd /c "cd /d %~dp0frontend && npm run dev"
-
-echo 3. Waiting 3 seconds for boot...
-timeout /t 3 >nul
-
-echo 4. Opening Browser to http://localhost:5173...
-start http://localhost:5173
-
-echo.
-echo ========================================================
-echo   App chal gayi hai! Browser check karein.
-echo   Demo Login: owner@dineai.com / DineAI@2026
-echo   QR Menu:    http://localhost:5173/m/the-royal-saffron
-echo ========================================================
-exit
+if errorlevel 1 (
+    echo.
+    echo [Error] Failed to start. Press any key to exit.
+    pause
+)

@@ -1,6 +1,25 @@
 @echo off
-title NG DineAI
+title NG DineAI — Luxury Hospitality SaaS
 color 0A
 
 cd /d "%~dp0"
-call RUN.bat
+
+echo ========================================================
+echo        Starting NG DineAI Platform (run_app.py)...
+echo ========================================================
+echo.
+
+if exist ".\venv\Scripts\python.exe" (
+    ".\venv\Scripts\python.exe" run_app.py
+) else (
+    python run_app.py
+    if errorlevel 1 (
+        "C:\Users\Hp\AppData\Local\Programs\Python\Python313\python.exe" run_app.py
+    )
+)
+
+if errorlevel 1 (
+    echo.
+    echo [Error] Failed to start NG DineAI. Press any key to exit.
+    pause
+)

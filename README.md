@@ -82,7 +82,26 @@ Built with an editorial luxury design system inspired by the visual restraint of
 
 ## ⚡ Quickstart Guide
 
-### Option 1: Native Setup (Recommended for Local Dev)
+### Option 1: 1-Click Unified Launcher (Vyapar Style — Recommended)
+
+Run everything in a single port with one command (no Node.js required):
+
+```bash
+python run_app.py
+# or:
+.\venv\Scripts\python.exe run_app.py
+```
+
+Or simply double-click **`START_APP.bat`** or **`RUN.bat`** in Windows Explorer!
+
+- **Unified Web Application**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+- **Interactive Control Center**: Double-click **`RUN_MENU.bat`**
+- **Swagger API Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **Live QR Menu**: [http://127.0.0.1:8000/m/the-royal-saffron](http://127.0.0.1:8000/m/the-royal-saffron)
+
+---
+
+### Option 2: Full Dev Mode (With Hot-Reload)
 
 #### 1. Backend Setup
 ```bash
@@ -103,7 +122,7 @@ npm run dev
 
 ---
 
-### Option 2: Docker Compose Setup
+### Option 3: Docker Compose Setup
 ```bash
 cp .env.example .env
 docker compose up -d --build
