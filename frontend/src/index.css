@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary-green: #173D32;
+    --deep-green: #102C25;
+    --champagne: #C6A66A;
+    --ivory-bg: #F8F6F0;
+    --card-bg: #FFFFFF;
+    --text-primary: #202722;
+    --text-secondary: #737B73;
+    --border-color: #E7E4DC;
+  }
+
+  body {
+    background-color: var(--ivory-bg);
+    color: var(--text-primary);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Custom refined luxury styling */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(231, 228, 220, 0.8);
+}
+
+.card-luxury {
+  background: #FFFFFF;
+  border: 1px solid #E7E4DC;
+  box-shadow: 0 1px 3px 0 rgba(16, 44, 37, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-luxury:hover {
+  box-shadow: 0 8px 24px -4px rgba(23, 61, 50, 0.08);
+  border-color: #DCB980;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F8F6F0;
+}
+::-webkit-scrollbar-thumb {
+  background: #C5D7CC;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2A6354;
+}

@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: dineai-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dineai_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dineai_secure_pass_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-dineai_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dineai_user -d dineai_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dineai-backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://dineai_user:dineai_secure_pass_2026@db:5432/dineai_db
+      SECRET_KEY: ${SECRET_KEY:-ng-dineai-luxury-secret-key-change-in-production-2026-secure}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      DEFAULT_AI_PROVIDER: ${DEFAULT_AI_PROVIDER:-gemini}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dineai-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
