@@ -13,7 +13,7 @@ from app.models.action import ActionInsight
 def seed_demo_data(db: Session) -> Workspace:
     """Seeds rich, realistic, luxury synthetic demo data for 'The Royal Saffron' restaurant."""
     
-    # 1. Create or retrieve default demo owner
+    # 1. Create or retrieve default demo owners
     owner = db.query(User).filter(User.email == "owner@dineai.com").first()
     if not owner:
         owner = User(
@@ -27,9 +27,44 @@ def seed_demo_data(db: Session) -> Workspace:
         db.commit()
         db.refresh(owner)
 
+    owner2 = db.query(User).filter(User.email == "owner@royalsaffron.com").first()
+    if not owner2:
+        owner2 = User(
+            email="owner@royalsaffron.com",
+            hashed_password=hash_password("RoyalPass123!"),
+            full_name="Vikramaditya Roy",
+            is_active=True,
+            is_superuser=True
+        )
+        db.add(owner2)
+        db.commit()
+        db.refresh(owner2)
+
+    manager = db.query(User).filter(User.email == "manager@royalsaffron.com").first()
+    if not manager:
+        manager = User(
+            email="manager@royalsaffron.com",
+            hashed_password=hash_password("ManagerPass123!"),
+            full_name="Ananya Sharma",
+            is_active=True,
+            is_superuser=False
+        )
+        db.add(manager)
+        db.commit()
+        db.refresh(manager)
+
     # 2. Check if Royal Saffron workspace exists
     workspace = db.query(Workspace).filter(Workspace.slug == "the-royal-saffron").first()
     if workspace:
+        # Ensure memberships exist for all demo users
+        for u, r in [(owner, "OWNER"), (owner2, "OWNER"), (manager, "MANAGER")]:
+            m = db.query(WorkspaceMembership).filter(
+                WorkspaceMembership.user_id == u.id,
+                WorkspaceMembership.workspace_id == workspace.id
+            ).first()
+            if not m:
+                db.add(WorkspaceMembership(user_id=u.id, workspace_id=workspace.id, role=r))
+        db.commit()
         return workspace
 
     workspace = Workspace(
@@ -51,12 +86,13 @@ def seed_demo_data(db: Session) -> Workspace:
     db.refresh(workspace)
 
     # 3. Membership & Settings
-    membership = WorkspaceMembership(
-        user_id=owner.id,
-        workspace_id=workspace.id,
-        role="OWNER"
-    )
-    db.add(membership)
+    for u, r in [(owner, "OWNER"), (owner2, "OWNER"), (manager, "MANAGER")]:
+        db.add(WorkspaceMembership(
+            user_id=u.id,
+            workspace_id=workspace.id,
+            role=r
+        ))
+    db.commit()
 
     settings = RestaurantSettings(
         workspace_id=workspace.id,

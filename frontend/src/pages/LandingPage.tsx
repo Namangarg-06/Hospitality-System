@@ -21,45 +21,131 @@ import {
 } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
+import { useAuth } from '../context/AuthContext';
 
 export const LandingPage: React.FC = () => {
+  const { user, loginAsDemo } = useAuth();
+  const [loadingDemo, setLoadingDemo] = React.useState(false);
+
+  const handleInstantOwnerLogin = async () => {
+    if (user) {
+      window.location.href = '/dashboard';
+      return;
+    }
+    setLoadingDemo(true);
+    try {
+      await loginAsDemo();
+      window.location.href = '/dashboard';
+    } catch (e) {
+      window.location.href = '/login';
+    } finally {
+      setLoadingDemo(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F8F6F0] text-[#202722] flex flex-col selection:bg-[#173D32] selection:text-white">
       <Navbar />
 
       {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28">
+      <section className="relative overflow-hidden pt-8 pb-16 lg:pt-16 lg:pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto space-y-6">
+          <div className="text-center max-w-4xl mx-auto space-y-5">
             
             <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-[#E4ECE7] text-[#173D32] text-xs font-semibold tracking-wide border border-[#C5D7CC]">
               <Sparkles className="w-3.5 h-3.5 text-[#C6A66A]" />
-              <span>Hospitality Intelligence & Operations Platform</span>
+              <span>Smarter Dining. Smarter Operations.</span>
             </div>
 
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#173D32] leading-tight">
+            <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#173D32] leading-tight">
               A Smarter Way to Run <br />
               <span className="italic font-normal text-[#C6A66A]">Your Restaurant.</span>
             </h1>
 
-            <p className="text-lg sm:text-xl text-[#737B73] font-normal leading-relaxed max-w-3xl mx-auto">
-              From intelligent digital menus to customer insights and operational analytics, bring your restaurant's most important workflows together in one AI-powered platform.
+            <p className="text-base sm:text-lg text-[#737B73] font-normal leading-relaxed max-w-3xl mx-auto">
+              Choose your perspective below to explore NG DineAI with pre-loaded demo data:
             </p>
 
-            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
-              <Link
-                to="/register"
-                className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-xl text-base font-semibold text-white bg-[#173D32] hover:bg-[#102C25] shadow-luxury transition-all"
-              >
-                Get Started
-                <ArrowRight className="w-4 h-4 ml-2" />
+            {/* TWO SIMPLE EXPERIENCE CARDS */}
+            <div className="pt-3 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto text-left">
+              
+              {/* Card 1: Customer View */}
+              <div className="bg-white rounded-2xl p-6 border-2 border-[#E7E4DC] hover:border-[#C6A66A] shadow-md hover:shadow-xl transition-all flex flex-col justify-between group">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-xl bg-[#FAF6ED] text-[#C6A66A] flex items-center justify-center border border-[#DCB980]/40">
+                      <UtensilsCrossed className="w-5 h-5" />
+                    </div>
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                      Customer View
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-xl font-bold text-[#173D32]">
+                      📱 Public QR Menu & AI Waiter
+                    </h3>
+                    <p className="text-xs text-[#737B73] mt-1 leading-relaxed">
+                      Dine at <strong>The Royal Saffron</strong>: browse dishes, filter vegetarian/spicy, and chat with the AI Sommelier for food & drink recommendations.
+                    </p>
+                  </div>
+                </div>
+                <div className="pt-5">
+                  <Link
+                    to="/m/the-royal-saffron"
+                    className="w-full inline-flex items-center justify-center px-5 py-3 rounded-xl text-sm font-bold text-white bg-[#173D32] group-hover:bg-[#102C25] shadow-sm transition-all"
+                  >
+                    <span>Open Customer QR Menu</span>
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Card 2: Owner View */}
+              <div className="bg-white rounded-2xl p-6 border-2 border-[#DCB980] hover:border-[#C6A66A] shadow-md hover:shadow-xl transition-all flex flex-col justify-between group relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-[#C6A66A] text-[#102C25] text-[10px] font-extrabold uppercase px-3 py-0.5 rounded-bl-lg tracking-wider">
+                  Recommended
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-xl bg-[#102C25] text-[#C6A66A] flex items-center justify-center shadow-inner">
+                      <ChefHat className="w-5 h-5" />
+                    </div>
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                      Owner & Admin View
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-xl font-bold text-[#173D32]">
+                      👑 Restaurant Operations OS
+                    </h3>
+                    <p className="text-xs text-[#737B73] mt-1 leading-relaxed">
+                      Live kitchen orders, AI review replies in 3 languages, daily revenue metrics, food-waste logs & proactive AI action directives.
+                    </p>
+                  </div>
+                </div>
+                <div className="pt-5">
+                  <button
+                    disabled={loadingDemo}
+                    onClick={handleInstantOwnerLogin}
+                    className="w-full inline-flex items-center justify-center px-5 py-3 rounded-xl text-sm font-bold text-[#102C25] bg-gradient-to-r from-[#C6A66A] to-[#DCB980] hover:brightness-105 shadow-md transition-all cursor-pointer"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2 text-[#102C25]" />
+                    <span>{loadingDemo ? 'Logging In...' : '⚡ 1-Click Enter Dashboard'}</span>
+                    <ArrowRight className="w-4 h-4 ml-1.5" />
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Subtle Secondary Links */}
+            <div className="pt-2 flex items-center justify-center space-x-6 text-xs text-[#737B73]">
+              <Link to="/login" className="hover:text-[#173D32] underline underline-offset-4">
+                Manual Sign In
               </Link>
-              <Link
-                to="/m/the-royal-saffron"
-                className="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-xl text-base font-semibold text-[#173D32] bg-white border border-[#E7E4DC] hover:border-[#C6A66A] hover:bg-[#FAF6ED] shadow-subtle transition-all"
-              >
-                <Sparkles className="w-4 h-4 mr-2 text-[#C6A66A]" />
-                Explore Live QR Menu
+              <span>•</span>
+              <Link to="/register" className="hover:text-[#173D32] underline underline-offset-4">
+                Register New Restaurant
               </Link>
             </div>
 

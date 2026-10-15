@@ -150,6 +150,72 @@ export const DashboardOverviewPage: React.FC = () => {
         </div>
       )}
 
+      {/* 4 SIMPLE QUICK ACTION CARDS */}
+      <div className="bg-gradient-to-r from-[#FAF6ED] to-white p-5 rounded-2xl border border-[#DCB980]/50 shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-bold text-[#173D32] flex items-center">
+            <Sparkles className="w-4 h-4 mr-2 text-[#C6A66A]" />
+            Quick Access Shortcuts — Sabse Zaroori Kaam Ek Click Mein
+          </h3>
+          <span className="text-xs text-[#737B73]">4 Core Modules</span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          
+          <Link
+            to={workspace?.slug ? `/m/${workspace.slug}` : '/m/the-royal-saffron'}
+            className="p-3.5 rounded-xl bg-white border border-[#E7E4DC] hover:border-[#C6A66A] shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-[#FAF6ED] text-[#C6A66A] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+              <UtensilsCrossed className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[#173D32]">1. Customer QR Menu</p>
+              <p className="text-[11px] text-[#737B73] mt-0.5">Test as guest & AI waiter</p>
+            </div>
+          </Link>
+
+          <Link
+            to="/dashboard/orders"
+            className="p-3.5 rounded-xl bg-white border border-[#E7E4DC] hover:border-[#C6A66A] shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+              <ShoppingBag className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[#173D32]">2. Kitchen Orders</p>
+              <p className="text-[11px] text-[#737B73] mt-0.5">{pendingOrders.length} pending orders</p>
+            </div>
+          </Link>
+
+          <Link
+            to="/dashboard/menu"
+            className="p-3.5 rounded-xl bg-white border border-[#E7E4DC] hover:border-[#C6A66A] shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+              <QrCode className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[#173D32]">3. Menu Studio</p>
+              <p className="text-[11px] text-[#737B73] mt-0.5">Dishes, PDF extraction</p>
+            </div>
+          </Link>
+
+          <Link
+            to="/dashboard/reviews"
+            className="p-3.5 rounded-xl bg-white border border-[#E7E4DC] hover:border-[#C6A66A] shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+              <MessageSquare className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[#173D32]">4. Review AI Studio</p>
+              <p className="text-[11px] text-[#737B73] mt-0.5">{reviews.length} guest reviews & replies</p>
+            </div>
+          </Link>
+
+        </div>
+      </div>
+
       {/* KEY METRICS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         

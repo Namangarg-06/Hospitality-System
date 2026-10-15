@@ -10,6 +10,7 @@ interface AuthContextType {
   isLoading: boolean;
   isDemoMode: boolean;
   login: (credentials: { email: string; password: string }) => Promise<void>;
+  loginAsDemo: () => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => void;
   refreshWorkspace: () => Promise<void>;
@@ -106,6 +107,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginAsDemo = async () => {
+    try {
+      await login({ email: 'owner@dineai.com', password: 'DineAI@2026' });
+    } catch {
+      await login({ email: 'owner@royalsaffron.com', password: 'RoyalPass123!' });
+    }
+  };
+
   const isDemoMode = Boolean(workspace?.settings?.demo_mode);
 
   return (
@@ -118,6 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         isDemoMode,
         login,
+        loginAsDemo,
         register,
         logout,
         refreshWorkspace,

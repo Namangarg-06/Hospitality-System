@@ -21,10 +21,13 @@ import { WastePage } from './pages/dashboard/WastePage';
 import { ActionsPage } from './pages/dashboard/ActionsPage';
 import { SettingsPage } from './pages/dashboard/SettingsPage';
 
+import { QuickDemoBar } from './components/common/QuickDemoBar';
+
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <QuickDemoBar />
         <Routes>
           {/* Public Marketing & Auth */}
           <Route path="/" element={<LandingPage />} />

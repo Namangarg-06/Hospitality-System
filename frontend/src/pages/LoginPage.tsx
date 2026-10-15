@@ -4,7 +4,7 @@ import { UtensilsCrossed, Sparkles, ArrowRight, Lock, Mail, AlertCircle } from '
 import { useAuth } from '../context/AuthContext';
 
 export const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { login, loginAsDemo } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -22,6 +22,19 @@ export const LoginPage: React.FC = () => {
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInstantLogin = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      await loginAsDemo();
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Demo login failed');
     } finally {
       setLoading(false);
     }
@@ -52,24 +65,36 @@ export const LoginPage: React.FC = () => {
 
       {/* Main Card */}
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-6 sm:px-10 rounded-2xl border border-[#E7E4DC] shadow-luxury space-y-6">
+        <div className="bg-white py-8 px-6 sm:px-10 rounded-2xl border border-[#E7E4DC] shadow-luxury space-y-5">
           
-          {/* Quick Demo Exploration Callout */}
-          <div className="p-4 rounded-xl bg-[#FAF6ED] border border-[#DCB980] flex items-start justify-between">
-            <div>
-              <span className="text-xs font-semibold text-[#8C6F3B] uppercase tracking-wider flex items-center">
-                <Sparkles className="w-3.5 h-3.5 mr-1 text-[#C6A66A]" /> Demo Workspace Available
-              </span>
-              <p className="text-xs text-[#737B73] mt-1">
-                Explore "The Royal Saffron" with preloaded orders, reviews & AI actions.
-              </p>
+          {/* 1-Click Instant Demo Button */}
+          <button
+            type="button"
+            disabled={loading}
+            onClick={handleInstantLogin}
+            className="w-full flex items-center justify-center space-x-2 py-3.5 px-4 rounded-xl text-sm font-bold text-[#102C25] bg-gradient-to-r from-[#C6A66A] to-[#DCB980] hover:brightness-105 shadow-md hover:shadow-lg transition-all"
+          >
+            <Sparkles className="w-4 h-4 text-[#102C25]" />
+            <span>⚡ 1-Click Instant Demo Login (Owner)</span>
+          </button>
+
+          <div className="relative flex py-1 items-center">
+            <div className="flex-grow border-t border-stone-200"></div>
+            <span className="flex-shrink mx-3 text-stone-400 text-xs font-semibold uppercase tracking-wider">Or Sign In Manually</span>
+            <div className="flex-grow border-t border-stone-200"></div>
+          </div>
+
+          {/* Quick Demo Fill Pill */}
+          <div className="p-3 rounded-xl bg-[#FAF6ED] border border-[#DCB980]/50 flex items-center justify-between">
+            <div className="text-xs text-[#737B73]">
+              <span className="font-semibold text-[#8C6F3B]">Demo credentials:</span> owner@dineai.com / DineAI@2026
             </div>
             <button
               type="button"
               onClick={handleQuickDemo}
-              className="ml-3 shrink-0 px-2.5 py-1 text-xs font-semibold rounded bg-[#173D32] text-white hover:bg-[#102C25] transition-colors"
+              className="ml-2 shrink-0 px-2.5 py-1 text-xs font-semibold rounded bg-[#173D32] text-white hover:bg-[#102C25] transition-colors"
             >
-              Fill Demo
+              Auto-Fill
             </button>
           </div>
 
