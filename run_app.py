@@ -27,6 +27,33 @@ def open_browser():
         print(f"[Warning] Could not automatically open browser: {exc}")
 
 
+def free_port(port: int = 8000):
+    """Ensure port is available by terminating any stale process occupying it."""
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        if s.connect_ex(('127.0.0.1', port)) != 0:
+            return  # Port is already free
+
+    print(f"\n[Port Manager] Port {port} is occupied by another application. Reclaiming port {port}...")
+    try:
+        import subprocess
+        output = subprocess.check_output(f'netstat -ano | findstr :{port}', shell=True, text=True)
+        current_pid = os.getpid()
+        killed = False
+        for line in output.strip().splitlines():
+            parts = line.strip().split()
+            if len(parts) >= 5 and "LISTENING" in parts:
+                pid = int(parts[-1])
+                if pid != current_pid and pid > 0:
+                    subprocess.run(f'taskkill /F /PID {pid}', shell=True, capture_output=True)
+                    killed = True
+        if killed:
+            time.sleep(1.2)
+            print(f"[Port Manager] Port {port} successfully freed for NG DineAI.\n")
+    except Exception as exc:
+        print(f"[Port Manager] Notice: {exc}")
+
+
 def main():
     print("=" * 70)
     print("      _   _  ____   ____  _             _    ___ ")
@@ -57,6 +84,7 @@ def main():
         print("    pip install -r backend/requirements.txt")
         sys.exit(1)
 
+    free_port(8000)
     threading.Thread(target=open_browser, daemon=True).start()
     uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=False)
 

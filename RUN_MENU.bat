@@ -37,6 +37,10 @@ echo ========================================================
 echo   Starting NG DineAI (Unified Single-Port Launcher)...
 echo ========================================================
 echo.
+:: Clear any stale process on port 8000 (e.g. Vyapar or old server)
+for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr ":8000" ^| findstr "LISTENING"') do (
+    taskkill /F /PID %%a >nul 2>&1
+)
 if exist "%~dp0venv\Scripts\python.exe" (
     "%~dp0venv\Scripts\python.exe" run_app.py
 ) else (
