@@ -1,0 +1,70 @@
+import os
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from app.core.config import settings
+from app.db.session import engine, Base, SessionLocal
+from app.services.seed_data import seed_demo_data
+
+# Import all routers
+from app.api.v1.auth import router as auth_router
+from app.api.v1.workspaces import router as workspaces_router
+from app.api.v1.menus import router as menus_router
+from app.api.v1.public_menu import router as public_menu_router
+from app.api.v1.orders import router as orders_router
+from app.api.v1.reviews import router as reviews_router
+from app.api.v1.analytics import router as analytics_router
+from app.api.v1.waste import router as waste_router
+from app.api.v1.actions import router as actions_router
+from app.api.v1.seed import router as seed_router
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Ensure database schema is initialized
+    Base.metadata.create_all(bind=engine)
+    # Ensure demo dataset exists
+    db = SessionLocal()
+    try:
+        seed_demo_data(db)
+    finally:
+        db.close()
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    yield
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    description="Smarter Dining. Smarter Operations. Luxury Restaurant Growth & Operations SaaS Platform.",
+    lifespan=lifespan
+)
+
+# CORS Configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# API v1 Router Registration
+app.include_router(auth_router, prefix=settings.API_V1_STR)
+app.include_router(workspaces_router, prefix=settings.API_V1_STR)
+app.include_router(menus_router, prefix=settings.API_V1_STR)
+app.include_router(public_menu_router, prefix=settings.API_V1_STR)
+app.include_router(orders_router, prefix=settings.API_V1_STR)
+app.include_router(reviews_router, prefix=settings.API_V1_STR)
+app.include_router(analytics_router, prefix=settings.API_V1_STR)
+app.include_router(waste_router, prefix=settings.API_V1_STR)
+app.include_router(actions_router, prefix=settings.API_V1_STR)
+app.include_router(seed_router, prefix=settings.API_V1_STR)
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "version": settings.VERSION,
+        "mode": "production-ready"
+    }
