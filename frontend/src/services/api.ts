@@ -150,7 +150,20 @@ class ApiClient {
     });
   }
 
-  // Public QR Menu
+  // Public QR Menu & Generator
+  async quickCreateRestaurant(data: {
+    restaurant_name: string;
+    restaurant_type?: string;
+    cuisine_preset?: string;
+    city?: string;
+    phone?: string;
+  }) {
+    return this.request<any>('/public/menu/quick-create-restaurant', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async getPublicMenu(slug: string) {
     return this.request<any>(`/public/menu/${slug}`);
   }

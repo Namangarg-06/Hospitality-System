@@ -9,9 +9,12 @@ import {
   ChevronUp, 
   ChevronDown,
   ShieldCheck,
-  Check
+  Check,
+  HelpCircle,
+  QrCode
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { HowItWorksModal } from './HowItWorksModal';
 
 export const QuickDemoBar: React.FC = () => {
   const { user, loginAsDemo } = useAuth();
@@ -19,6 +22,7 @@ export const QuickDemoBar: React.FC = () => {
   const location = useLocation();
   const [isMinimized, setIsMinimized] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
 
   const handleOwnerClick = async (targetPath = '/dashboard') => {
     if (user) {
@@ -87,6 +91,19 @@ export const QuickDemoBar: React.FC = () => {
             {isQrMenu && <Check className="w-3 h-3 ml-0.5" />}
           </button>
 
+          {/* CREATE ANY RESTAURANT QR (NEW!) */}
+          <button
+            onClick={() => navigate('/qr-generator')}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+              location.pathname === '/qr-generator'
+                ? 'bg-[#C6A66A] text-[#102C25] border-[#C6A66A] shadow-sm'
+                : 'bg-gradient-to-r from-[#C6A66A]/20 to-[#DCB980]/20 text-[#C6A66A] border-[#C6A66A]/50 hover:bg-[#C6A66A]/30'
+            }`}
+          >
+            <QrCode className="w-3.5 h-3.5 text-[#C6A66A]" />
+            <span>🖨️ Create Any Restro QR</span>
+          </button>
+
           {/* Owner Dashboard */}
           <button
             disabled={loading}
@@ -106,7 +123,7 @@ export const QuickDemoBar: React.FC = () => {
           <button
             disabled={loading}
             onClick={() => handleOwnerClick('/dashboard/orders')}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
               location.pathname === '/dashboard/orders'
                 ? 'bg-[#C6A66A] text-[#102C25] font-bold shadow-sm'
                 : 'bg-white/10 text-white hover:bg-white/20'
@@ -116,18 +133,13 @@ export const QuickDemoBar: React.FC = () => {
             <span>👨‍🍳 Kitchen Orders</span>
           </button>
 
-          {/* AI Action Center */}
+          {/* How It Works Guide Button */}
           <button
-            disabled={loading}
-            onClick={() => handleOwnerClick('/dashboard/actions')}
-            className={`hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              location.pathname === '/dashboard/actions'
-                ? 'bg-[#C6A66A] text-[#102C25] font-bold shadow-sm'
-                : 'bg-white/10 text-white hover:bg-white/20'
-            }`}
+            onClick={() => setShowGuide(true)}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 hover:bg-white/20 text-[#C6A66A] transition-all border border-white/15"
           >
-            <BrainCircuit className="w-3.5 h-3.5 text-purple-300" />
-            <span>⚡ AI Action Engine</span>
+            <HelpCircle className="w-3.5 h-3.5 text-[#C6A66A]" />
+            <span>💡 Kaise Kaam Karta Hai?</span>
           </button>
 
           {/* Home Link */}
@@ -161,6 +173,8 @@ export const QuickDemoBar: React.FC = () => {
         </div>
 
       </div>
+
+      <HowItWorksModal isOpen={showGuide} onClose={() => setShowGuide(false)} />
     </aside>
   );
 };

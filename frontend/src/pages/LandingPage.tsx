@@ -138,6 +138,32 @@ export const LandingPage: React.FC = () => {
 
             </div>
 
+            {/* Quick Restro QR Banner */}
+            <div className="pt-2 max-w-3xl mx-auto">
+              <Link
+                to="/qr-generator"
+                className="w-full p-4 rounded-2xl bg-gradient-to-r from-[#102C25] to-[#173D32] text-white flex flex-col sm:flex-row items-center justify-between gap-3 border border-[#C6A66A]/40 shadow-md hover:border-[#C6A66A] transition-all group text-left"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#C6A66A] text-[#102C25] flex items-center justify-center shrink-0 font-bold shadow-sm">
+                    <QrCode className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white group-hover:text-[#C6A66A] transition-colors">
+                      🖨️ Kisi Bhi Restaurant Ka QR Banayein (Instant Generator)
+                    </h4>
+                    <p className="text-xs text-stone-300">
+                      Dhaba, Cafe, ya Family Restaurant ka naam daalein aur turant printable table standee praapt karein.
+                    </p>
+                  </div>
+                </div>
+                <div className="shrink-0 flex items-center space-x-1 px-4 py-2 rounded-xl bg-[#C6A66A] text-[#102C25] text-xs font-bold shadow-xs">
+                  <span>Create Restro QR</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </Link>
+            </div>
+
             {/* Subtle Secondary Links */}
             <div className="pt-2 flex items-center justify-center space-x-6 text-xs text-[#737B73]">
               <Link to="/login" className="hover:text-[#173D32] underline underline-offset-4">

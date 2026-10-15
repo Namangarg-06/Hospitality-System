@@ -10,6 +10,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { PublicQrMenuPage } from './pages/PublicQrMenuPage';
 import { PublicOrderStatusPage } from './pages/PublicOrderStatusPage';
+import { QrGeneratorPage } from './pages/QrGeneratorPage';
 
 // Dashboard Pages
 import { DashboardOverviewPage } from './pages/dashboard/DashboardOverviewPage';
@@ -33,6 +34,7 @@ export const App: React.FC = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/qr-generator" element={<QrGeneratorPage />} />
 
           {/* Public Customer Digital QR Menu & Tracking */}
           <Route path="/m/:slug" element={<PublicQrMenuPage />} />
