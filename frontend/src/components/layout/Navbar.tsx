@@ -32,11 +32,11 @@ export const Navbar: React.FC = () => {
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-[#202722]">
             <a href="#platform" className="hover:text-[#173D32] transition-colors">Platform</a>
             <a href="#features" className="hover:text-[#173D32] transition-colors">Features</a>
-            <Link to="/qr-generator" className="flex items-center text-[#173D32] hover:text-[#C6A66A] font-bold px-2.5 py-1 rounded-lg bg-[#FAF6ED] border border-[#DCB980] transition-colors">
-              <Sparkles className="w-4 h-4 mr-1.5 text-[#C6A66A]" /> 🖨️ Create Any Restro QR
+            <Link to="/qr-generator" className="flex items-center text-[#173D32] hover:text-[#C6A66A] font-bold px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#FAF6ED] to-[#F5EEDB] border border-[#DCB980] transition-colors shadow-2xs">
+              <Sparkles className="w-4 h-4 mr-1.5 text-[#C6A66A]" /> ⚡ Smart QR & PDF Menu
             </Link>
             <Link to="/m/the-royal-saffron" className="flex items-center text-[#173D32] hover:text-[#C6A66A] font-semibold transition-colors">
-              <UtensilsCrossed className="w-4 h-4 mr-1.5 text-[#C6A66A]" /> Live Demo QR
+              <UtensilsCrossed className="w-4 h-4 mr-1.5 text-[#C6A66A]" /> Demo QR
             </Link>
           </nav>
 

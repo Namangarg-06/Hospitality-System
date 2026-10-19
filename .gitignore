@@ -56,3 +56,7 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# User Uploads
+uploads/
+backend/uploads/

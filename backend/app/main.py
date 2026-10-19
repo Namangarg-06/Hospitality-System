@@ -23,6 +23,28 @@ from app.api.v1.seed import router as seed_router
 async def lifespan(app: FastAPI):
     # Ensure database schema is initialized
     Base.metadata.create_all(bind=engine)
+    
+    # Auto-migrate new Smart QR columns for SQLite if not present
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        for col, col_type in [
+            ("whatsapp_number", "VARCHAR(50)"),
+            ("google_review_url", "VARCHAR(500)"),
+            ("instagram_url", "VARCHAR(500)"),
+            ("website_url", "VARCHAR(500)"),
+            ("upi_id", "VARCHAR(100)"),
+            ("wifi_name", "VARCHAR(100)"),
+            ("wifi_password", "VARCHAR(100)"),
+            ("pdf_menu_url", "VARCHAR(500)"),
+            ("pdf_menu_filename", "VARCHAR(255)"),
+            ("custom_links", "JSON"),
+        ]:
+            try:
+                conn.execute(text(f"ALTER TABLE workspaces ADD COLUMN {col} {col_type}"))
+                conn.commit()
+            except Exception:
+                pass
+
     # Ensure demo dataset exists
     db = SessionLocal()
     try:
@@ -69,9 +91,10 @@ def health_check():
         "mode": "production-ready"
     }
 
-# Mount uploads directory if present
-if os.path.exists(settings.UPLOAD_DIR):
-    app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+# Mount uploads directory (ensure it and subdirectories exist)
+menus_dir = os.path.join(settings.UPLOAD_DIR, "menus")
+os.makedirs(menus_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
 # Detect and mount frontend production build (SPA)
 from pathlib import Path

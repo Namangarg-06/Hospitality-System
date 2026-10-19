@@ -1,11 +1,14 @@
+import os
+import uuid
 import random
 import re
 from datetime import datetime
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.db.session import get_db
+from app.core.config import settings as app_settings
 from app.models.user import User
 from app.models.workspace import Workspace, WorkspaceMembership, RestaurantSettings
 from app.models.menu import MenuCategory, MenuItem
@@ -230,6 +233,266 @@ def quick_create_restaurant(req: QuickCreateRestaurantRequest, db: Session = Dep
         "message": f"QR Menu for '{workspace.name}' successfully generated with delicious dishes!"
     }
 
+@router.get("/smart-qrs")
+def get_all_smart_qrs(db: Session = Depends(get_db)):
+    """Returns list of all saved restaurant workspaces with their smart links and PDF menu status."""
+    workspaces = db.query(Workspace).filter(Workspace.is_active == True).order_by(Workspace.created_at.desc(), Workspace.id.desc()).all()
+    results = []
+    for ws in workspaces:
+        items_count = db.query(MenuItem).filter(MenuItem.workspace_id == ws.id).count()
+        results.append({
+            "id": ws.id,
+            "restaurant_name": ws.name,
+            "slug": ws.slug,
+            "restaurant_type": ws.restaurant_type,
+            "city": ws.city,
+            "phone": ws.phone,
+            "whatsapp_number": ws.whatsapp_number,
+            "google_review_url": ws.google_review_url,
+            "instagram_url": ws.instagram_url,
+            "website_url": ws.website_url,
+            "upi_id": ws.upi_id,
+            "wifi_name": ws.wifi_name,
+            "wifi_password": ws.wifi_password,
+            "pdf_menu_url": ws.pdf_menu_url,
+            "pdf_menu_filename": ws.pdf_menu_filename,
+            "public_url": f"/m/{ws.slug}",
+            "created_at": ws.created_at.isoformat() if ws.created_at else None,
+            "items_count": items_count
+        })
+    return results
+
+@router.post("/smart-qr")
+async def create_smart_qr(
+    restaurant_name: str = Form(...),
+    phone: Optional[str] = Form(None),
+    whatsapp_number: Optional[str] = Form(None),
+    google_review_url: Optional[str] = Form(None),
+    instagram_url: Optional[str] = Form(None),
+    upi_id: Optional[str] = Form(None),
+    wifi_name: Optional[str] = Form(None),
+    wifi_password: Optional[str] = Form(None),
+    restaurant_type: Optional[str] = Form("Restaurant & Cafe"),
+    city: Optional[str] = Form("Delhi NCR"),
+    cuisine_preset: Optional[str] = Form("indian"),
+    pdf_file: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db)
+):
+    """Create a new independent restaurant QR profile with multi-links and optional PDF Menu upload."""
+    clean_name = restaurant_name.strip()
+    if not clean_name:
+        raise HTTPException(status_code=400, detail="Restaurant name is required")
+
+    base_slug = slugify_text(clean_name) or "restaurant"
+    slug = base_slug
+    counter = 1
+    while db.query(Workspace).filter(Workspace.slug == slug).first():
+        slug = f"{base_slug}-{counter}"
+        counter += 1
+
+    pdf_menu_url = None
+    pdf_menu_filename = None
+
+    if pdf_file and pdf_file.filename:
+        menus_dir = os.path.join(app_settings.UPLOAD_DIR, "menus")
+        os.makedirs(menus_dir, exist_ok=True)
+        clean_fn = re.sub(r"[^\w\.-]", "_", pdf_file.filename)
+        unique_fn = f"{slug}_{uuid.uuid4().hex[:6]}_{clean_fn}"
+        file_path = os.path.join(menus_dir, unique_fn)
+        content = await pdf_file.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
+        pdf_menu_url = f"/uploads/menus/{unique_fn}"
+        pdf_menu_filename = pdf_file.filename
+
+    workspace = Workspace(
+        name=clean_name,
+        slug=slug,
+        restaurant_type=restaurant_type or "Restaurant & Cafe",
+        city=city or "Delhi NCR",
+        phone=phone or whatsapp_number or "+91 98765 43210",
+        whatsapp_number=whatsapp_number or phone,
+        google_review_url=google_review_url,
+        instagram_url=instagram_url,
+        upi_id=upi_id,
+        wifi_name=wifi_name,
+        wifi_password=wifi_password,
+        pdf_menu_url=pdf_menu_url,
+        pdf_menu_filename=pdf_menu_filename,
+        currency="INR",
+        timezone="Asia/Kolkata",
+        is_active=True
+    )
+    db.add(workspace)
+    db.commit()
+    db.refresh(workspace)
+
+    # Create Restaurant Settings
+    settings = RestaurantSettings(
+        workspace_id=workspace.id,
+        ordering_enabled=True,
+        table_ordering_enabled=True,
+        takeaway_enabled=True,
+        tax_rate_percent=5.0,
+        demo_mode=True
+    )
+    db.add(settings)
+
+    # Link with demo users
+    owners = db.query(User).filter(User.email.in_(["owner@dineai.com", "owner@royalsaffron.com"])).all()
+    for o in owners:
+        db.add(WorkspaceMembership(user_id=o.id, workspace_id=workspace.id, role="OWNER"))
+
+    # Populate fallback menu items from preset
+    preset_key = cuisine_preset if cuisine_preset in PRESET_MENUS else "indian"
+    categories_data = PRESET_MENUS[preset_key]
+    for cat_order, cat_info in enumerate(categories_data):
+        cat = MenuCategory(
+            workspace_id=workspace.id,
+            name=cat_info["category"],
+            display_order=cat_order,
+            is_active=True
+        )
+        db.add(cat)
+        db.commit()
+        db.refresh(cat)
+
+        for item_data in cat_info["items"]:
+            menu_item = MenuItem(
+                workspace_id=workspace.id,
+                category_id=cat.id,
+                name=item_data["name"],
+                short_description=item_data.get("short_description", ""),
+                long_description=item_data.get("short_description", ""),
+                description_hi=item_data.get("description_hi", ""),
+                price=float(item_data["price"]),
+                currency="INR",
+                dietary_badges=item_data.get("dietary_badges", ["veg"]),
+                ingredients=item_data.get("ingredients", []),
+                spice_level=item_data.get("spice_level", "mild"),
+                is_available=True,
+                is_published=True
+            )
+            db.add(menu_item)
+
+    db.commit()
+
+    return {
+        "status": "success",
+        "workspace_id": workspace.id,
+        "restaurant_name": workspace.name,
+        "slug": workspace.slug,
+        "restaurant_type": workspace.restaurant_type,
+        "city": workspace.city,
+        "phone": workspace.phone,
+        "whatsapp_number": workspace.whatsapp_number,
+        "google_review_url": workspace.google_review_url,
+        "instagram_url": workspace.instagram_url,
+        "upi_id": workspace.upi_id,
+        "wifi_name": workspace.wifi_name,
+        "wifi_password": workspace.wifi_password,
+        "pdf_menu_url": workspace.pdf_menu_url,
+        "pdf_menu_filename": workspace.pdf_menu_filename,
+        "public_url": f"/m/{workspace.slug}",
+        "message": f"Smart QR for '{workspace.name}' successfully created!"
+    }
+
+@router.put("/smart-qr/{slug}")
+async def update_smart_qr(
+    slug: str,
+    restaurant_name: Optional[str] = Form(None),
+    phone: Optional[str] = Form(None),
+    whatsapp_number: Optional[str] = Form(None),
+    google_review_url: Optional[str] = Form(None),
+    instagram_url: Optional[str] = Form(None),
+    upi_id: Optional[str] = Form(None),
+    wifi_name: Optional[str] = Form(None),
+    wifi_password: Optional[str] = Form(None),
+    restaurant_type: Optional[str] = Form(None),
+    city: Optional[str] = Form(None),
+    remove_pdf: Optional[bool] = Form(False),
+    pdf_file: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db)
+):
+    """
+    Update Smart QR details or replace Menu PDF WITHOUT CHANGING THE QR CODE OR SLUG!
+    The physical QR code remains 100% active and serves the new PDF and links immediately.
+    """
+    workspace = db.query(Workspace).filter(Workspace.slug == slug, Workspace.is_active == True).first()
+    if not workspace:
+        raise HTTPException(status_code=404, detail="Restaurant not found")
+
+    if restaurant_name is not None and restaurant_name.strip():
+        workspace.name = restaurant_name.strip()
+    if phone is not None:
+        workspace.phone = phone.strip()
+    if whatsapp_number is not None:
+        workspace.whatsapp_number = whatsapp_number.strip()
+    if google_review_url is not None:
+        workspace.google_review_url = google_review_url.strip()
+    if instagram_url is not None:
+        workspace.instagram_url = instagram_url.strip()
+    if upi_id is not None:
+        workspace.upi_id = upi_id.strip()
+    if wifi_name is not None:
+        workspace.wifi_name = wifi_name.strip()
+    if wifi_password is not None:
+        workspace.wifi_password = wifi_password.strip()
+    if restaurant_type is not None:
+        workspace.restaurant_type = restaurant_type.strip()
+    if city is not None:
+        workspace.city = city.strip()
+
+    if remove_pdf:
+        workspace.pdf_menu_url = None
+        workspace.pdf_menu_filename = None
+
+    if pdf_file and pdf_file.filename:
+        menus_dir = os.path.join(app_settings.UPLOAD_DIR, "menus")
+        os.makedirs(menus_dir, exist_ok=True)
+        clean_fn = re.sub(r"[^\w\.-]", "_", pdf_file.filename)
+        unique_fn = f"{slug}_{uuid.uuid4().hex[:6]}_{clean_fn}"
+        file_path = os.path.join(menus_dir, unique_fn)
+        content = await pdf_file.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
+        workspace.pdf_menu_url = f"/uploads/menus/{unique_fn}"
+        workspace.pdf_menu_filename = pdf_file.filename
+
+    workspace.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(workspace)
+
+    return {
+        "status": "success",
+        "workspace_id": workspace.id,
+        "restaurant_name": workspace.name,
+        "slug": workspace.slug,
+        "restaurant_type": workspace.restaurant_type,
+        "city": workspace.city,
+        "phone": workspace.phone,
+        "whatsapp_number": workspace.whatsapp_number,
+        "google_review_url": workspace.google_review_url,
+        "instagram_url": workspace.instagram_url,
+        "upi_id": workspace.upi_id,
+        "wifi_name": workspace.wifi_name,
+        "wifi_password": workspace.wifi_password,
+        "pdf_menu_url": workspace.pdf_menu_url,
+        "pdf_menu_filename": workspace.pdf_menu_filename,
+        "public_url": f"/m/{workspace.slug}",
+        "message": f"Successfully updated '{workspace.name}'! Your printed QR code remains the same."
+    }
+
+@router.delete("/smart-qr/{slug}")
+def delete_smart_qr(slug: str, db: Session = Depends(get_db)):
+    """Delete a saved restaurant workspace."""
+    workspace = db.query(Workspace).filter(Workspace.slug == slug).first()
+    if not workspace:
+        raise HTTPException(status_code=404, detail="Restaurant not found")
+    workspace.is_active = False
+    db.commit()
+    return {"status": "success", "message": f"Restaurant '{workspace.name}' deleted successfully"}
+
 @router.get("/{slug}")
 def get_public_menu(slug: str, db: Session = Depends(get_db)):
     workspace = db.query(Workspace).filter(Workspace.slug == slug, Workspace.is_active == True).first()
@@ -292,6 +555,16 @@ def get_public_menu(slug: str, db: Session = Depends(get_db)):
             "phone": workspace.phone,
             "currency": workspace.currency,
             "logo_url": workspace.logo_url,
+            "whatsapp_number": workspace.whatsapp_number,
+            "google_review_url": workspace.google_review_url,
+            "instagram_url": workspace.instagram_url,
+            "website_url": workspace.website_url,
+            "upi_id": workspace.upi_id,
+            "wifi_name": workspace.wifi_name,
+            "wifi_password": workspace.wifi_password,
+            "pdf_menu_url": workspace.pdf_menu_url,
+            "pdf_menu_filename": workspace.pdf_menu_filename,
+            "custom_links": workspace.custom_links,
             "opening_hours": settings.opening_hours if settings else None,
             "ordering_enabled": settings.ordering_enabled if settings else True,
             "table_ordering_enabled": settings.table_ordering_enabled if settings else True,

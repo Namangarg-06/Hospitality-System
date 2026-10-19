@@ -17,10 +17,26 @@ import {
   MapPin,
   Phone,
   MessageCircle,
-  ArrowRight
+  ArrowRight,
+  FileText,
+  Download,
+  ExternalLink,
+  Star,
+  Wifi,
+  CreditCard,
+  Copy,
+  Check
 } from 'lucide-react';
 import { api } from '../services/api';
 import { MenuItem } from '../types';
+
+const InstagramIcon: React.FC<{ className?: string }> = ({ className = "w-3.5 h-3.5" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+  </svg>
+);
 
 export const PublicQrMenuPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -42,6 +58,13 @@ export const PublicQrMenuPage: React.FC = () => {
   const [tableNumber, setTableNumber] = useState('Table 4');
   const [orderNotes, setOrderNotes] = useState('');
   const [submittingOrder, setSubmittingOrder] = useState(false);
+
+  // Multi-Link & PDF Menu Modal States
+  const [showUpiModal, setShowUpiModal] = useState(false);
+  const [showWifiModal, setShowWifiModal] = useState(false);
+  const [showPdfViewer, setShowPdfViewer] = useState(true);
+  const [copiedUpi, setCopiedUpi] = useState(false);
+  const [copiedWifi, setCopiedWifi] = useState(false);
 
   // AI Dining Sommelier Assistant State
   const [showAiAssistant, setShowAiAssistant] = useState(false);
@@ -271,6 +294,87 @@ export const PublicQrMenuPage: React.FC = () => {
         </div>
       </div>
 
+      {/* QUICK ACTIONS ROW: WHATSAPP, CALL, GOOGLE REVIEW, UPI, WIFI */}
+      {(restaurant.whatsapp_number || restaurant.phone || restaurant.google_review_url || restaurant.upi_id || restaurant.wifi_name || restaurant.instagram_url) && (
+        <div className="bg-[#173D32] border-b border-[#C6A66A]/30 py-3 px-4 shadow-sm">
+          <div className="max-w-3xl mx-auto flex items-center justify-center sm:justify-start flex-wrap gap-2 text-xs">
+            {/* WhatsApp */}
+            {(restaurant.whatsapp_number || restaurant.phone) && (
+              <a
+                href={`https://wa.me/${(restaurant.whatsapp_number || restaurant.phone).replace(/[^\d]/g, '')}?text=${encodeURIComponent(`Hello ${restaurant.name}, I want to place an order / get menu assistance.`)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/40 font-semibold transition-all"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                <span>WhatsApp Order</span>
+              </a>
+            )}
+
+            {/* Phone Call */}
+            {restaurant.phone && (
+              <a
+                href={`tel:${restaurant.phone}`}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-medium transition-all"
+              >
+                <Phone className="w-3.5 h-3.5 text-[#C6A66A]" />
+                <span>Call Us</span>
+              </a>
+            )}
+
+            {/* Google Review */}
+            {restaurant.google_review_url && (
+              <a
+                href={restaurant.google_review_url}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/40 font-semibold transition-all"
+              >
+                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                <span>Rate 5★ Google</span>
+              </a>
+            )}
+
+            {/* Pay via UPI */}
+            {restaurant.upi_id && (
+              <button
+                type="button"
+                onClick={() => setShowUpiModal(true)}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-400/40 font-semibold transition-all"
+              >
+                <CreditCard className="w-3.5 h-3.5 text-blue-400" />
+                <span>Pay UPI</span>
+              </button>
+            )}
+
+            {/* WiFi */}
+            {restaurant.wifi_name && (
+              <button
+                type="button"
+                onClick={() => setShowWifiModal(true)}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-stone-200 font-medium transition-all"
+              >
+                <Wifi className="w-3.5 h-3.5 text-[#C6A66A]" />
+                <span>WiFi Info</span>
+              </button>
+            )}
+
+            {/* Instagram */}
+            {restaurant.instagram_url && (
+              <a
+                href={restaurant.instagram_url}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-pink-500/20 hover:bg-pink-500/30 text-pink-300 border border-pink-400/40 font-medium transition-all"
+              >
+                <InstagramIcon className="w-3.5 h-3.5 text-pink-400" />
+                <span>Instagram</span>
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 2. STICKY FILTER & SEARCH BAR */}
       <div className="sticky top-0 z-30 bg-[#F8F6F0]/95 backdrop-blur-md border-b border-[#E7E4DC] py-3 px-4 shadow-sm">
         <div className="max-w-3xl mx-auto space-y-3">
@@ -343,6 +447,61 @@ export const PublicQrMenuPage: React.FC = () => {
 
         </div>
       </div>
+
+      {/* 2.5. FEATURED MENU PDF SECTION (IF UPLOADED) */}
+      {restaurant.pdf_menu_url && (
+        <div className="max-w-3xl mx-auto px-4 mt-6">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border-2 border-[#C6A66A] shadow-luxury space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#FAF6ED] border border-[#DCB980] flex items-center justify-center text-[#8C6F3B] shrink-0">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#C6A66A] block">
+                    Official Restaurant Menu Card
+                  </span>
+                  <h3 className="font-serif text-lg font-bold text-[#173D32]">
+                    {restaurant.pdf_menu_filename || 'Dining Menu (PDF)'}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <a
+                  href={restaurant.pdf_menu_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  download
+                  className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#FAF6ED] text-[#173D32] border border-[#DCB980] hover:bg-[#F2E8D3] transition-all"
+                >
+                  <Download className="w-4 h-4 text-[#8C6F3B]" />
+                  <span>Download PDF</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setShowPdfViewer(!showPdfViewer)}
+                  className="flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#173D32] text-white hover:bg-[#102C25] transition-all"
+                >
+                  <FileText className="w-4 h-4 text-[#C6A66A]" />
+                  <span>{showPdfViewer ? 'Hide PDF' : 'View Full Menu PDF'}</span>
+                </button>
+              </div>
+            </div>
+
+            {showPdfViewer && (
+              <div className="rounded-2xl overflow-hidden border border-[#E7E4DC] shadow-inner bg-stone-100">
+                <iframe
+                  src={`${restaurant.pdf_menu_url}#toolbar=0&navpanes=0`}
+                  title="Restaurant Menu PDF"
+                  className="w-full h-[550px] sm:h-[650px] border-0"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 3. MENU CATEGORIES & DISHES LIST */}
       <div className="max-w-3xl mx-auto px-4 mt-6 space-y-8">
@@ -767,6 +926,136 @@ export const PublicQrMenuPage: React.FC = () => {
               </form>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* UPI PAYMENT MODAL */}
+      {showUpiModal && restaurant.upi_id && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-5 border border-[#E7E4DC] shadow-2xl relative">
+            <button
+              onClick={() => setShowUpiModal(false)}
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mx-auto">
+              <CreditCard className="w-6 h-6" />
+            </div>
+
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#C6A66A]">
+                Instant Payment
+              </span>
+              <h3 className="font-serif text-xl font-bold text-[#173D32]">
+                Pay {restaurant.name}
+              </h3>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-[#F8F6F0] border border-[#E7E4DC] space-y-1">
+              <span className="text-[10px] font-bold uppercase text-stone-400">
+                UPI ID (VPA)
+              </span>
+              <div className="flex items-center justify-center space-x-2">
+                <span className="font-mono text-sm font-bold text-[#173D32]">
+                  {restaurant.upi_id}
+                </span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(restaurant.upi_id);
+                    setCopiedUpi(true);
+                    setTimeout(() => setCopiedUpi(false), 2000);
+                  }}
+                  className="p-1 rounded-lg hover:bg-stone-200 text-stone-600"
+                  title="Copy UPI ID"
+                >
+                  {copiedUpi ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+              {copiedUpi && (
+                <span className="text-[10px] font-bold text-emerald-600 block">
+                  UPI ID Copied!
+                </span>
+              )}
+            </div>
+
+            <a
+              href={`upi://pay?pa=${encodeURIComponent(restaurant.upi_id)}&pn=${encodeURIComponent(restaurant.name)}&cu=INR`}
+              className="w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-xl text-xs font-bold bg-[#173D32] text-white hover:bg-[#102C25] transition-all"
+            >
+              <span>Open Google Pay / PhonePe / Paytm</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* WIFI INFO MODAL */}
+      {showWifiModal && restaurant.wifi_name && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-5 border border-[#E7E4DC] shadow-2xl relative">
+            <button
+              onClick={() => setShowWifiModal(false)}
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="w-12 h-12 rounded-2xl bg-[#FAF6ED] border border-[#DCB980] text-[#8C6F3B] flex items-center justify-center mx-auto">
+              <Wifi className="w-6 h-6" />
+            </div>
+
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#C6A66A]">
+                Guest Connectivity
+              </span>
+              <h3 className="font-serif text-xl font-bold text-[#173D32]">
+                Restaurant WiFi
+              </h3>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#F8F6F0] border border-[#E7E4DC] text-left space-y-2">
+              <div>
+                <span className="text-[10px] font-bold uppercase text-stone-400 block">
+                  Network Name (SSID)
+                </span>
+                <span className="font-mono text-xs font-bold text-[#173D32]">
+                  {restaurant.wifi_name}
+                </span>
+              </div>
+
+              {restaurant.wifi_password && (
+                <div>
+                  <span className="text-[10px] font-bold uppercase text-stone-400 block">
+                    Password
+                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-[#173D32]">
+                      {restaurant.wifi_password}
+                    </span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(restaurant.wifi_password);
+                        setCopiedWifi(true);
+                        setTimeout(() => setCopiedWifi(false), 2000);
+                      }}
+                      className="px-2 py-1 rounded-lg text-[10px] font-bold bg-white border border-[#E7E4DC] text-stone-600 hover:bg-stone-50"
+                    >
+                      {copiedWifi ? 'Copied!' : 'Copy Pass'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowWifiModal(false)}
+              className="w-full py-2.5 rounded-xl text-xs font-bold bg-[#173D32] text-white hover:bg-[#102C25]"
+            >
+              Done
+            </button>
           </div>
         </div>
       )}

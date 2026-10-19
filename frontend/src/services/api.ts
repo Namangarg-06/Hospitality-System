@@ -164,6 +164,30 @@ class ApiClient {
     });
   }
 
+  async getSmartQrs() {
+    return this.request<any[]>('/public/menu/smart-qrs');
+  }
+
+  async createSmartQr(formData: FormData) {
+    return this.request<any>('/public/menu/smart-qr', {
+      method: 'POST',
+      body: formData,
+    }, true);
+  }
+
+  async updateSmartQr(slug: string, formData: FormData) {
+    return this.request<any>(`/public/menu/smart-qr/${slug}`, {
+      method: 'PUT',
+      body: formData,
+    }, true);
+  }
+
+  async deleteSmartQr(slug: string) {
+    return this.request<any>(`/public/menu/smart-qr/${slug}`, {
+      method: 'DELETE',
+    });
+  }
+
   async getPublicMenu(slug: string) {
     return this.request<any>(`/public/menu/${slug}`);
   }

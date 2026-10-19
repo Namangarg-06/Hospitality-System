@@ -101,7 +101,7 @@ export const QuickDemoBar: React.FC = () => {
             }`}
           >
             <QrCode className="w-3.5 h-3.5 text-[#C6A66A]" />
-            <span>🖨️ Create Any Restro QR</span>
+            <span>⚡ Smart QR & PDF Menu</span>
           </button>
 
           {/* Owner Dashboard */}
